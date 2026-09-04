@@ -107,7 +107,54 @@ def get_product_detail(product_id):
     # Devolvemos el producto en formato JSON
     return jsonify(product.to_dict()), 200
 
+# Endpoint para obtener la lista de categorías únicas de productos
+@app.route('/api/products/categories', methods=['GET'])
+def get_categories():
+    """
+    Retorna la lista de categorías únicas presentes en la base de datos SQL.
+    Equivale a la consulta SQL: SELECT DISTINCT category FROM products;
+    """
+    # db.session.query(Product.category).distinct().all() ejecuta la consulta SQL DISTINCT
+    categories_query = db.session.query(Product.category).distinct().all()
+
+    # Extraemos el primer elemento de cada tupla obtenida [(cat1,), (cat2,)...]
+    categories_list = [item[0] for item in categories_query if item[0]]
+
+    # Devolvemos el array de strings en formato JSON
+    return jsonify(categories_list), 200
+
+# Endpoint para obtener productos filtrados por una categoría específica
+@app.route('/api/products/category/<string:category_name>', methods=['GET'])
+def get_products_by_category(category_name):
+    """
+    Retorna todos los productos que pertenecen a la categoría especificada.
+    Equivale a la consulta SQL: SELECT * FROM products WHERE category = category_name;
+    Soporta también los query params sort y limit.
+    """
+    from flask import request
+
+    # Consulta base filtrando por categoría
+    query = Product.query.filter_by(category=category_name)
+
+    # Ordenamiento
+    sort_param = request.args.get('sort')
+    if sort_param == 'desc':
+        query = query.order_by(Product.id.desc())
+    elif sort_param == 'asc':
+        query = query.order_by(Product.id.asc())
+
+    # Límite
+    limit_param = request.args.get('limit')
+    if limit_param and limit_param.isdigit():
+        query = query.limit(int(limit_param))
+
+    products = query.all()
+    products_json = [p.to_dict() for p in products]
+
+    return jsonify(products_json), 200
+
 if __name__ == '__main__':
+
 
     # Leemos el puerto y el modo debug desde las variables de entorno (.env)
     # Convertimos el puerto a entero (int) y verificamos el string de debug

@@ -1,4 +1,11 @@
-node_modules/
-.DS_Store
-.system_generated/
-*.log
+# Entornos virtuales de Python
+venv/
+.venv/
+env/
+
+# Archivos de caché de Python
+__pycache__/
+*.pyc
+
+# Archivo de base de datos SQLite local
+backend/ecommerce.db

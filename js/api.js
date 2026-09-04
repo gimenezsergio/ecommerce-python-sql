@@ -1,4 +1,5 @@
-const BASE_URL = 'https://fakestoreapi.com';
+// URL base de nuestro servidor Backend en Python Flask con Base de Datos SQL
+const BASE_URL = 'http://localhost:5000/api';
 
 function buildQueryParams(options = {}) {
     const params = new URLSearchParams();

@@ -28,8 +28,44 @@ def health_check():
         'message': 'Backend de Ecommerce en Flask funcionando correctamente'
     })
 
+# Endpoint para obtener el listado de productos desde la base de datos SQL
+@app.route('/api/products', methods=['GET'])
+def get_products():
+    """
+    Retorna la lista de productos de la base de datos SQL.
+    Soporta los parámetros de consulta (query params):
+    - sort: 'asc' o 'desc' (ordenar por ID)
+    - limit: número entero para limitar la cantidad de resultados
+    """
+    from flask import request
+
+    # Iniciamos la consulta base sobre la tabla 'products' usando SQLAlchemy
+    query = Product.query
+
+    # 1. Aplicar ordenamiento si se pasa el parámetro 'sort'
+    sort_param = request.args.get('sort')
+    if sort_param == 'desc':
+        query = query.order_by(Product.id.desc())
+    elif sort_param == 'asc':
+        query = query.order_by(Product.id.asc())
+
+    # 2. Aplicar límite si se pasa el parámetro 'limit'
+    limit_param = request.args.get('limit')
+    if limit_param and limit_param.isdigit():
+        query = query.limit(int(limit_param))
+
+    # Ejecutamos la consulta SQL (SELECT * FROM products ...)
+    products = query.all()
+
+    # Convertimos cada objeto de producto SQL a un diccionario usando .to_dict()
+    products_json = [p.to_dict() for p in products]
+
+    # Retornamos el array en formato JSON con código HTTP 200 OK
+    return jsonify(products_json), 200
+
 if __name__ == '__main__':
     # Iniciamos el servidor de desarrollo de Flask en el puerto 5000 con modo debug activo
     app.run(debug=True, port=5000)
+
 
 

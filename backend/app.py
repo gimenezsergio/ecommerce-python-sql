@@ -89,7 +89,26 @@ def get_products():
     # Retornamos el array en formato JSON con código HTTP 200 OK
     return jsonify(products_json), 200
 
+# Endpoint para obtener el detalle de un producto por su ID
+@app.route('/api/products/<int:product_id>', methods=['GET'])
+def get_product_detail(product_id):
+    """
+    Retorna los datos de un único producto buscando por su clave primaria (ID) en la DB SQL.
+    - Si el producto existe: devuelve el JSON con código 200 OK.
+    - Si no existe: devuelve un mensaje de error en JSON con código HTTP 404 Not Found.
+    """
+    # db.session.get(Product, product_id) es el método moderno de SQLAlchemy 2.0 para buscar por ID
+    product = db.session.get(Product, product_id)
+
+    # Verificamos si la consulta SQL devolvió un registro
+    if not product:
+        return jsonify({'message': f'Producto con ID {product_id} no encontrado'}), 404
+
+    # Devolvemos el producto en formato JSON
+    return jsonify(product.to_dict()), 200
+
 if __name__ == '__main__':
+
     # Leemos el puerto y el modo debug desde las variables de entorno (.env)
     # Convertimos el puerto a entero (int) y verificamos el string de debug
     port = int(os.getenv('PORT', 5000))

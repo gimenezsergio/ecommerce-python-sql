@@ -1,23 +1,29 @@
 import os
 from flask import Flask, jsonify
 from flask_cors import CORS
+from dotenv import load_dotenv
 from models import db, Product
+
+# Cargar las variables de entorno desde el archivo .env si existe
+load_dotenv()
 
 # Inicializamos la aplicación Flask
 app = Flask(__name__)
 
-# Habilitamos CORS (Cross-Origin Resource Sharing)
-# Esto es esencial para permitir que el frontend (HTML/JS) consuma nuestra API
-# sin ser bloqueado por las políticas de seguridad del navegador.
+# Habilitamos CORS para permitir peticiones desde el cliente web
 CORS(app)
 
-# Configuración del path absoluto para almacenar el archivo de base de datos SQLite 'ecommerce.db'
+# Configuración de la Base de Datos SQL leída dinámicamente desde .env
+# Si no está definida en .env, usa SQLite local por defecto como respaldo (fallback)
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(BASE_DIR, 'ecommerce.db')
+default_db_path = 'sqlite:///' + os.path.join(BASE_DIR, 'ecommerce.db')
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', default_db_path)
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Vinculamos la instancia de SQLAlchemy con nuestra app de Flask
 db.init_app(app)
+
 
 # Endpoint de comprobación de estado (Health Check)
 @app.route('/api/health', methods=['GET'])
@@ -64,8 +70,13 @@ def get_products():
     return jsonify(products_json), 200
 
 if __name__ == '__main__':
-    # Iniciamos el servidor de desarrollo de Flask en el puerto 5000 con modo debug activo
-    app.run(debug=True, port=5000)
+    # Leemos el puerto y el modo debug desde las variables de entorno (.env)
+    # Convertimos el puerto a entero (int) y verificamos el string de debug
+    port = int(os.getenv('PORT', 5000))
+    debug = os.getenv('FLASK_DEBUG', 'True').lower() == 'true'
+
+    # Iniciamos el servidor Flask con la configuración leída
+    app.run(debug=debug, host='0.0.0.0', port=port)
 
 
 

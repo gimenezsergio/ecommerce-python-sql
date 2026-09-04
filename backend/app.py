@@ -7,11 +7,18 @@ from models import db, Product
 # Cargar las variables de entorno desde el archivo .env si existe
 load_dotenv()
 
-# Inicializamos la aplicación Flask
-app = Flask(__name__)
+# Inicializamos la aplicación Flask indicando que los archivos estáticos (HTML/JS/CSS) están en la raíz del proyecto
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+app = Flask(__name__, static_folder=PROJECT_ROOT, static_url_path='')
 
 # Habilitamos CORS para permitir peticiones desde el cliente web
 CORS(app)
+
+# Ruta principal para servir el archivo index.html del Frontend
+@app.route('/')
+def serve_index():
+    return app.send_static_file('index.html')
+
 
 # Configuración de la Base de Datos SQL leída dinámicamente desde .env
 # Si no está definida en .env, usa SQLite local por defecto como respaldo (fallback)
@@ -33,6 +40,19 @@ def health_check():
         'status': 'ok',
         'message': 'Backend de Ecommerce en Flask funcionando correctamente'
     })
+
+# Endpoint que entrega la configuración pública (leída desde .env) al Frontend
+@app.route('/api/config', methods=['GET'])
+def get_config():
+    """
+    Entrega variables públicas del entorno (.env) al cliente JS.
+    Permite que el frontend configure su BASE_URL dinámicamente según el servidor.
+    """
+    api_url = os.getenv('API_BASE_URL', 'http://localhost:5000/api')
+    return jsonify({
+        'apiUrl': api_url
+    }), 200
+
 
 # Endpoint para obtener el listado de productos desde la base de datos SQL
 @app.route('/api/products', methods=['GET'])

@@ -9,7 +9,9 @@ __pycache__/
 
 # Archivo de base de datos SQLite local
 backend/ecommerce.db
+backend/instance/
 
 # Variables de entorno locales con datos sensibles/específicos del entorno
 backend/.env
+
 

@@ -1,5 +1,31 @@
-// URL base de nuestro servidor Backend en Python Flask con Base de Datos SQL
-const BASE_URL = 'http://localhost:5000/api';
+// Variable global para la URL base de la API (por defecto relativa '/api')
+let BASE_URL = '/api';
+
+/**
+ * Método A: Obtiene la configuración de variables de entorno directamente desde el Backend (Flask).
+ * Usa una ruta relativa '/api/config' para que sirva sin hardcodear ninguna IP o puerto en el código.
+ */
+export async function loadConfig() {
+    try {
+        // Petición relativa: el navegador resolverá la URL según el host donde esté corriendo
+        const response = await fetch('/api/config');
+        if (response.ok) {
+            const config = await response.json();
+            if (config.apiUrl) {
+                BASE_URL = config.apiUrl;
+                console.log('✅ Configuración cargada desde el servidor Flask (.env):', BASE_URL);
+            }
+        }
+    } catch (error) {
+        console.warn('⚠️ No se pudo obtener /api/config. Usando URL base por defecto:', BASE_URL);
+    }
+}
+
+// Ejecutar la carga de configuración al importar el módulo
+loadConfig();
+
+
+
 
 function buildQueryParams(options = {}) {
     const params = new URLSearchParams();
